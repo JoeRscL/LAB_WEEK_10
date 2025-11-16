@@ -1,17 +1,31 @@
 package com.example.lab_week_10.database
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 
-// Create a database with the @Database annotation
-// It has 2 parameters:
-// entities: You can define which entities the database relies on.
-// version: Used to define schema version when there's a change to the schema.
-@Database(entities = [Total::class], version = 1)
+@Database(entities = [Total::class], version = 2, exportSchema = false)
 abstract class TotalDatabase : RoomDatabase() {
 
-    // Declare the Dao
     abstract fun totalDao(): TotalDao
 
-    // You can declare other Dao here for more entities
+    companion object {
+        @Volatile
+        private var INSTANCE: TotalDatabase? = null
+
+        fun getDatabase(context: Context): TotalDatabase {
+            return INSTANCE ?: synchronized(this) {
+                Room.databaseBuilder(
+                    context.applicationContext,
+                    TotalDatabase::class.java,
+                    "total_db"
+                )
+                    .fallbackToDestructiveMigration()
+                    .allowMainThreadQueries()
+                    .build()
+                    .also { INSTANCE = it }
+            }
+        }
+    }
 }
